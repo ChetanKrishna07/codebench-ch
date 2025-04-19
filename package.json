@@ -15,8 +15,10 @@
     "@fontsource/roboto": "^5.2.5",
     "@mui/icons-material": "^7.0.2",
     "@mui/material": "^7.0.2",
+    "ace-builds": "^1.40.0",
     "axios": "^1.8.4",
     "react": "^19.0.0",
+    "react-ace": "^14.0.1",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
