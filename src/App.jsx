@@ -4,7 +4,6 @@ import HelperChat from "./components/HelperChat";
 import CodeInput from "./components/CodeInput";
 import DebugInput from "./components/DebugInput";
 import axios from "axios";
-import { NULL } from "wd/lib/special-keys";
 
 function App() {
   const [chatEnabled, setChatEnabled] = useState(false);
@@ -46,8 +45,8 @@ function App() {
     // Process code to add line numbers
     let code_with_line_numbers = process_code(code);
 
-    let data = NULL
-    let url = NULL
+    let data = null
+    let url = null
     if (mode === "Explanation") {
       console.log("Fetching explanation...");
       data = JSON.stringify({
