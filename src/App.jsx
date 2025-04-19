@@ -214,7 +214,7 @@ function App() {
         <Box position="absolute" top={16} right={16} zIndex={1}>
           <Switch checked={themeMode === "dark"} onChange={toggleTheme} />
         </Box>
-        <Box display="flex" height="100vh">
+        <Box display="flex" height="100vh" flexDirection={{xs: "column", lg: "row"}}>
           {/* Conditionally render CodeInput vs DebugInput based on mode */}
           {mode === "Explanation" ? (
             <CodeInput
