@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -40,6 +41,8 @@ export default function DebugInput({
   setMode,
   themeMode,
 }) {
+  const [settingLanguage, setSettingLanguage] = useState(false);
+
   const getAceMode = (language) => {
     switch (language) {
       case "Python":
@@ -128,9 +131,17 @@ export default function DebugInput({
           <FormControl margin="normal" fullWidth>
             <InputLabel>Language</InputLabel>
             <Select
-              value={selectedLanguage}
+              value={settingLanguage ? "Other" : selectedLanguage}
               label="Language"
-              onChange={(e) => setSelectedLanguage(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value === "Other") {
+                  setSettingLanguage(true);
+                  setSelectedLanguage("");
+                } else {
+                  setSettingLanguage(false);
+                  setSelectedLanguage(e.target.value);
+                }
+              }}
             >
               {["Python", "JavaScript", "Java", "C++", "R", "Other"].map(
                 (language) => (
@@ -141,11 +152,17 @@ export default function DebugInput({
               )}
             </Select>
           </FormControl>
-          {selectedLanguage === "Other" && (
+          {settingLanguage && (
             <TextField
               placeholder="Specify your language"
-              value={selectedLanguage === "Other" ? "" : selectedLanguage}
+              value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
+              onBlur={() => {
+                if (!selectedLanguage.trim()) {
+                  setSettingLanguage(false);
+                  setSelectedLanguage("Other");
+                }
+              }}
             />
           )}
         </CardActions>

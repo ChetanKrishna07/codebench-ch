@@ -41,6 +41,7 @@ export default function CodeInput({
   themeMode,
 }) {
   const [languages, setLanguages] = useState([]);
+  const [settingLanguage, setSettingLanguage] = useState(false);
 
   useEffect(() => {
     setCourses(["CS101", "CS210", "CS439"]);
@@ -140,9 +141,17 @@ export default function CodeInput({
           <FormControl margin="normal" fullWidth>
             <InputLabel>Language</InputLabel>
             <Select
-              value={selectedLanguage}
+              value={settingLanguage ? "Other" : selectedLanguage}
               label="Language"
-              onChange={(e) => setSelectedLanguage(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value === "Other") {
+                  setSettingLanguage(true);
+                  setSelectedLanguage("");
+                } else {
+                  setSettingLanguage(false);
+                  setSelectedLanguage(e.target.value);
+                }
+              }}
             >
               {languages.map((language) => (
                 <MenuItem key={language} value={language}>
@@ -151,11 +160,17 @@ export default function CodeInput({
               ))}
             </Select>
           </FormControl>
-          {selectedLanguage === "Other" && (
+          {settingLanguage && (
             <TextField
               placeholder="Specify your language"
-              value={selectedLanguage === "Other" ? "" : selectedLanguage}
+              value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
+              onBlur={() => {
+                if (!selectedLanguage.trim()) {
+                  setSettingLanguage(false);
+                  setSelectedLanguage("Other");
+                }
+              }}
             />
           )}
         </CardActions>
