@@ -154,6 +154,7 @@ export default function CodeInput({
           {selectedLanguage === "Other" && (
             <TextField
               placeholder="Specify your language"
+              value={selectedLanguage === "Other" ? "" : selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
             />
           )}
