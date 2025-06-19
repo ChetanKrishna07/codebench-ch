@@ -1,114 +1,150 @@
 import { useEffect, useState } from "react";
-import { Box, ThemeProvider, createTheme, CssBaseline, Switch } from "@mui/material";
+import {
+  Box,
+  ThemeProvider,
+  createTheme,
+  CssBaseline,
+  Switch,
+} from "@mui/material";
 import HelperChat from "./components/HelperChat";
 import CodeInput from "./components/CodeInput";
 import DebugInput from "./components/DebugInput";
 import axios from "axios";
+import type { PaletteMode, Theme } from "@mui/material";
 
 function App() {
-  const [chatEnabled, setChatEnabled] = useState(false);
-  const [code, setCode] = useState("");
-  const [error, setError] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("");
-  const [conversation, setConversation] = useState([]);
-  const [chatInput, setChatInput] = useState("");
-  const [mode, setMode] = useState("Explanation");
-  const [courses, setCourses] = useState([]);
-  const [themeMode, setThemeMode] = useState("dark"); // new state
-  const root_url = "https://codebench-ch-api.nicedune-0680dc11.eastus2.azurecontainerapps.io"
+  const [chatEnabled, setChatEnabled] = useState<boolean>(false);
+  const [code, setCode] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("");
+  const [conversation, setConversation] = useState<ConversationMessage[]>([]);
+  const [chatInput, setChatInput] = useState<string>("");
+  const [mode, setMode] = useState<string>("Explanation");
+  const [courses, setCourses] = useState<string[]>([]);
+  const [themeMode, setThemeMode] = useState<PaletteMode>("dark"); // new state
+  const root_url =
+    "https://codebench-ch-api.nicedune-0680dc11.eastus2.azurecontainerapps.io";
   useEffect(() => {
     setConversation([]); // Reset conversation when mode changes
     setChatInput(""); // Reset chat input when mode changes
     setChatEnabled(false); // Reset chat enabled state when mode changes
-  }, [selectedCourse, mode])
+  }, [selectedCourse, mode]);
 
-  const toggleTheme = () => setThemeMode(prev => prev === "light" ? "dark" : "light"); // toggle function
+  const toggleTheme = () =>
+    setThemeMode((prev) => (prev === "light" ? "dark" : "light")); // toggle function
 
-  const theme = createTheme({
+  const theme: Theme = createTheme({
     palette: {
       mode: themeMode,
     },
   });
 
-  const process_code = (code) => {
-    let code_lines = code.split('\n');
-    let code_with_line_numbers = code_lines.map((line, index) => `${index + 1}: ${line}`).join('\n');
+  // Type definitions for conversation messages
+
+  interface HumanMessage {
+    human: string;
+  }
+
+  interface AgentMessage {
+    agent: string | { loading: boolean };
+  }
+
+  type ConversationMessage = HumanMessage | AgentMessage;
+
+  interface ChatPayload {
+    messages: ConversationMessage[];
+    language: string;
+    mode: string;
+    course_id: string;
+  }
+
+  // Function to process code and add line numbers
+  const process_code = (code: string): string => {
+    let code_lines = code.split("\n");
+    let code_with_line_numbers = code_lines
+      .map((line, index) => `${index + 1}: ${line}`)
+      .join("\n");
     console.log("Processed code with line numbers:\n", code_with_line_numbers);
     return code_with_line_numbers;
   };
 
-  const fetchCodeExplanation = (code) => {
+  // Function to fetch code explanation or debugging information
+  const fetchCodeExplanation = async (code: string) => {
     console.log(`You are in ${mode} mode.`);
     console.log(`Calling API to fetch explanation for code:\n${code}`);
-    
+
     // Process code to add line numbers
     let code_with_line_numbers = process_code(code);
 
-    let data = null
-    let url = null
+    let data: string | null = null;
+    let url: string | undefined = undefined;
     if (mode === "Explanation") {
       console.log("Fetching explanation...");
       data = JSON.stringify({
-        "code": code_with_line_numbers,
-        "language": selectedLanguage,
-        "course_id": selectedCourse,
-      }); 
-      url = `${root_url}/explain`
+        code: code_with_line_numbers,
+        language: selectedLanguage,
+        course_id: selectedCourse,
+      });
+      url = `${root_url}/explain`;
     } else if (mode === "Debug") {
       console.log("Fetching debugging information...");
       data = JSON.stringify({
-        "code": code,
-        "error": error,
-        "language": selectedLanguage,
-        "course_id": selectedCourse,
+        code: code,
+        error: error,
+        language: selectedLanguage,
+        course_id: selectedCourse,
       });
-      url = `${root_url}/debug`
+      url = `${root_url}/debug`;
     }
 
-    if (!data) {
-      console.error("No data to send for explanation.");
-      return Promise.reject("No data to send for explanation.");
+    if (!data || !url) {
+      console.error("No data or url to send for explanation.");
+      return Promise.reject("No data or url to send for explanation.");
     }
     console.log("Url sending to:", url);
     let config = {
-      method: 'post',
+      method: "post",
       maxBodyLength: Infinity,
-      headers: { 
-        'Content-Type': 'application/json'
+      headers: {
+        "Content-Type": "application/json",
       },
       url: url,
-      data : data
+      data: data,
     };
 
-    return axios.request(config)
-    .then((response) => {
-      console.log("Explanation received:", response.data);
-      return response.data.response;
-    })
-    .catch((error) => {
-      console.error("Error fetching explanation:", error);
-      throw error;
-    });
+    return axios
+      .request(config)
+      .then((response) => {
+        console.log("Explanation received:", response.data);
+        return response.data.response;
+      })
+      .catch((error) => {
+        console.error("Error fetching explanation:", error);
+        throw error;
+      });
   };
 
-  // Dummy API call to simulate chatting with the agent.
-  const chatWithAgent = async (updatedConversation) => {
-
+  // Function to handle chat with the agent
+  const chatWithAgent = async (
+    updatedConversation: ConversationMessage[]
+  ): Promise<void> => {
     // Use the updated conversation for payload.
-    const currentMessages = updatedConversation.filter(
-      (msg) => !(msg.agent && msg.agent.loading)
+    const currentMessages: ConversationMessage[] = updatedConversation.filter(
+      (msg) =>
+        !(msg as AgentMessage).agent ||
+        !((msg as AgentMessage).agent as any).loading
     );
-    
-    let processed_code = process_code(code);
+
+    let processed_code: string = process_code(code);
 
     currentMessages.unshift({
-      'human': processed_code
-    })
+      human: processed_code,
+    });
 
     console.log("Current messages for chat:", currentMessages);
-    
-    const payload = {
+
+    const payload: ChatPayload = {
       messages: currentMessages,
       language: selectedLanguage,
       mode: mode.toLowerCase(),
@@ -124,10 +160,12 @@ function App() {
         data: JSON.stringify(payload),
       });
       console.log("Chat response received:", response.data);
-      setConversation((prev) => {
+      setConversation((prev: ConversationMessage[]) => {
         const newConv = [...prev];
         const loadingIndex = newConv.findIndex(
-          (msg) => msg.agent && msg.agent.loading
+          (msg) =>
+            (msg as AgentMessage).agent &&
+            ((msg as AgentMessage).agent as any).loading
         );
         if (loadingIndex !== -1) {
           newConv[loadingIndex] = {
@@ -138,10 +176,12 @@ function App() {
       });
     } catch (error) {
       console.error("Error fetching chat response:", error);
-      setConversation((prev) => {
+      setConversation((prev: ConversationMessage[]) => {
         const newConv = [...prev];
         const loadingIndex = newConv.findIndex(
-          (msg) => msg.agent && msg.agent.loading
+          (msg) =>
+            (msg as AgentMessage).agent &&
+            ((msg as AgentMessage).agent as any).loading
         );
         if (loadingIndex !== -1) {
           newConv[loadingIndex] = {
@@ -153,6 +193,7 @@ function App() {
     }
   };
 
+  // Function triggered when the user clicks the "Explain Code" button
   const handleExplainCode = () => {
     // Create a new conversation thread each time.
     setConversation([]);
@@ -185,26 +226,35 @@ function App() {
         setConversation([{ agent: explanation }]);
       })
       .catch((error) => {
-        alert("Failed to fetch explanation. Please try again.", error);
+        alert("Failed to fetch explanation. Please try again." + (error ? ` Error: ${error}` : ""));
         setConversation([{ agent: "Failed to fetch explanation." }]);
       });
   };
 
+  // Function to handle sending chat messages
   const handleSend = async () => {
     if (chatInput.trim()) {
-      const updatedConversation = [...conversation, { human: chatInput.trim()}, { agent: { loading: true } }];
+      const updatedConversation = [
+        ...conversation,
+        { human: chatInput.trim() },
+        { agent: { loading: true } },
+      ];
       setConversation(updatedConversation);
       setChatInput("");
       await chatWithAgent(updatedConversation);
-    } 
+    }
   };
 
+
+  // Function to clear the chat and start fresh
   const handleClear = () => {
-    let user_confirmation = window.confirm("Are you sure you want to clear the chat?");
+    let user_confirmation = window.confirm(
+      "Are you sure you want to clear the chat?"
+    );
     if (!user_confirmation) return;
     setConversation([]);
     setChatInput("");
-  }
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -214,7 +264,11 @@ function App() {
         <Box position="absolute" top={16} right={16} zIndex={1}>
           <Switch checked={themeMode === "dark"} onChange={toggleTheme} />
         </Box>
-        <Box display="flex" height="100vh" flexDirection={{xs: "column", lg: "row"}}>
+        <Box
+          display="flex"
+          height="100vh"
+          flexDirection={{ xs: "column", lg: "row" }}
+        >
           {/* Conditionally render CodeInput vs DebugInput based on mode */}
           {mode === "Explanation" ? (
             <CodeInput
@@ -250,7 +304,13 @@ function App() {
           )}
 
           {/* Right Side */}
-          <Box flex={1} display="flex" alignItems="center" justifyContent="center" p={4}>
+          <Box
+            flex={1}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            p={4}
+          >
             <HelperChat
               chatEnabled={chatEnabled}
               conversation={conversation}

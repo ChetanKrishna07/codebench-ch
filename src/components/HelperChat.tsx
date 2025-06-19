@@ -12,6 +12,18 @@ import {
 import SendIcon from "@mui/icons-material/Send";
 import AddCommentIcon from '@mui/icons-material/AddComment';
 
+interface HelperChatProps {
+  chatEnabled: boolean;
+  conversation: Array<{
+    human?: string;
+    agent?: string | { loading: boolean };
+  }>;
+  chatInput: string;
+  setChatInput: (input: string) => void;
+  handleSend: () => void;
+  handleClear: () => void;
+}
+
 export default function HelperChat({
   chatEnabled,
   conversation,
@@ -19,7 +31,7 @@ export default function HelperChat({
   setChatInput,
   handleSend,
   handleClear,
-}) {
+}: HelperChatProps) {
   return (
     <Card sx={{ width: "100%" }}>
       <CardHeader title="Code Helper"/>
@@ -51,7 +63,7 @@ export default function HelperChat({
               }}
             >
               {msg.agent ? (
-                msg.agent.loading ? (
+                typeof msg.agent === "object" && "loading" in msg.agent && msg.agent.loading ? (
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <CircularProgress size={20} />
                     <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
@@ -61,7 +73,7 @@ export default function HelperChat({
                 ) : (
                   // Agent messages rendered in plain text
                   <Typography variant="body1" sx={{ whiteSpace: "pre-wrap" }}>
-                    {msg.agent}
+                    {typeof msg.agent === "string" ? msg.agent : ""}
                   </Typography>
                 )
               ) : (

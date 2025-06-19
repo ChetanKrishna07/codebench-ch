@@ -26,6 +26,22 @@ import "ace-builds/src-noconflict/mode-java";
 import "ace-builds/src-noconflict/mode-c_cpp";
 import "ace-builds/src-noconflict/mode-r";
 
+interface DebugInputProps {
+  onExplain: () => void;
+  code: string;
+  setCode: (code: string) => void;
+  error: string;
+  setError: (error: string) => void;
+  courses: string[];
+  selectedCourse: string;
+  setSelectedCourse: (course: string) => void;
+  selectedLanguage: string;
+  setSelectedLanguage: (language: string) => void;
+  mode: string;
+  setMode: (mode: string) => void;
+  themeMode: "light" | "dark";
+}
+
 export default function DebugInput({
   onExplain,
   code,
@@ -40,10 +56,10 @@ export default function DebugInput({
   mode,
   setMode,
   themeMode,
-}) {
+}: DebugInputProps) {
   const [settingLanguage, setSettingLanguage] = useState(false);
 
-  const getAceMode = (language) => {
+  const getAceMode = (language: string) => {
     switch (language) {
       case "Python":
         return "python";
@@ -84,7 +100,7 @@ export default function DebugInput({
               label="Select a course"
               onChange={(e) => setSelectedCourse(e.target.value)}
             >
-              {courses.map((course) => (
+              {courses.map((course: string) => (
                 <MenuItem key={course} value={course}>
                   {course}
                 </MenuItem>

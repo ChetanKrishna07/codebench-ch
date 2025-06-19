@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -26,6 +26,21 @@ import "ace-builds/src-noconflict/mode-java";
 import "ace-builds/src-noconflict/mode-c_cpp";
 import "ace-builds/src-noconflict/mode-r";
 
+interface CodeInputProps {
+  onExplain: () => void;
+  code: string;
+  setCode: (code: string) => void;
+  courses: string[];
+  setCourses: (courses: string[]) => void;
+  selectedCourse: string;
+  setSelectedCourse: (course: string) => void;
+  selectedLanguage: string;
+  setSelectedLanguage: (language: string) => void;
+  mode: string;
+  setMode: (mode: string) => void;
+  themeMode: string;
+}
+
 export default function CodeInput({
   onExplain,
   code,
@@ -39,9 +54,10 @@ export default function CodeInput({
   mode,
   setMode,
   themeMode,
-}) {
-  const [languages, setLanguages] = useState([]);
-  const [settingLanguage, setSettingLanguage] = useState(false);
+}: CodeInputProps): React.JSX.Element {
+  
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [settingLanguage, setSettingLanguage] = useState<boolean>(false);
 
   useEffect(() => {
     setCourses(["CS101", "CS210", "CS439"]);
@@ -52,7 +68,8 @@ export default function CodeInput({
     console.log("Theme: ", themeMode);
   }, [themeMode]);
 
-  const getAceMode = (language) => {
+  // Configure Ace Editor mode based on selected language
+  const getAceMode = (language: string) => {
     switch (language) {
       case "Python":
         return "python";
@@ -93,7 +110,7 @@ export default function CodeInput({
               label="Select a course"
               onChange={(e) => setSelectedCourse(e.target.value)}
             >
-              {courses.map((course) => (
+              {courses.map((course: string) => (
                 <MenuItem key={course} value={course}>
                   {course}
                 </MenuItem>
@@ -112,7 +129,6 @@ export default function CodeInput({
             {mode} Mode
           </Typography>
           <ToggleButtonGroup
-            margin="normal"
             value={mode}
             exclusive
             onChange={(e, newMode) => {
